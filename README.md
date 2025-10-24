@@ -9,7 +9,7 @@ TIMS is a centralized WhatsApp team inbox platform built for the SifuTutor ecosy
 ### Backend
 - **Framework**: Laravel 10
 - **Database**: MySQL 8
-- **Real-time**: Laravel WebSockets / Pusher
+- **Real-time**: Laravel Broadcasting API with Pusher
 - **Authentication**: Laravel Sanctum (JWT)
 - **Storage**: AWS S3 / DigitalOcean Spaces
 - **Messaging**: Meta WhatsApp Cloud API
@@ -135,11 +135,11 @@ Team-Inbox-Management-System/
    ```
    Backend will run on `http://localhost:8000`
 
-7. **Start WebSocket server** (in a separate terminal)
-   ```bash
-   php artisan websockets:serve
-   ```
-   WebSocket server will run on port `6001`
+   **Note on Real-time Broadcasting**:
+   - For development, the system uses `BROADCAST_DRIVER=log` which logs events to Laravel logs
+   - For production real-time features, configure Pusher.com or another WebSocket service
+   - Set `BROADCAST_DRIVER=pusher` and configure Pusher credentials in `.env`
+   - The abandoned `beyondcode/laravel-websockets` package has been removed
 
 ### Frontend Setup
 
@@ -231,6 +231,15 @@ After running seeders, you can login with:
 - `GET /api/webhook/whatsapp` - Webhook verification
 - `POST /api/webhook/whatsapp` - Receive incoming messages
 
+### Broadcasting Channels (Real-time)
+- `conversation.{id}` - Receive updates for a specific conversation
+- `department.{id}` - Receive updates for all conversations in a department
+- `user.{id}` - Receive personal notifications
+
+**Broadcasting Events:**
+- `MessageSent` - Fired when an agent sends a message
+- `MessageReceived` - Fired when a customer message is received
+
 ## Database Schema
 
 ### Core Tables
@@ -289,9 +298,10 @@ VITE_WS_KEY=tims-key
 ## Development Workflow
 
 1. **Start backend server**: `php artisan serve`
-2. **Start WebSocket server**: `php artisan websockets:serve`
-3. **Start frontend**: `npm run dev` (in frontend directory)
-4. **Access application**: http://localhost:3000
+2. **Start frontend**: `npm run dev` (in frontend directory)
+3. **Access application**: http://localhost:3000
+
+**Note**: Broadcasting events are logged to Laravel logs in development mode. Check `storage/logs/laravel.log` to see broadcast events.
 
 ## Production Deployment
 
@@ -337,10 +347,12 @@ npm run build
 
 ## Troubleshooting
 
-### WebSocket Connection Issues
-- Ensure WebSocket server is running: `php artisan websockets:serve`
-- Check firewall settings for port 6001
-- Verify CORS configuration in `config/cors.php`
+### Broadcasting / Real-time Updates
+- **Development**: Events are logged to `storage/logs/laravel.log` with `BROADCAST_DRIVER=log`
+- **Production**: Configure Pusher or another WebSocket service
+- Set `BROADCAST_DRIVER=pusher` and add Pusher credentials to `.env`
+- Verify broadcasting routes are registered in `routes/channels.php`
+- Check CORS configuration in `config/cors.php` for frontend access
 
 ### WhatsApp Webhook Not Receiving Messages
 - Verify webhook URL is publicly accessible (use ngrok for local testing)

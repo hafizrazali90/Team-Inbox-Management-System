@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\ActivityLog;
+use App\Events\MessageSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -99,8 +100,8 @@ class MessageController extends Controller
                 'ip_address' => $request->ip(),
             ]);
 
-            // Broadcast via WebSocket (placeholder)
-            // event(new MessageSent($message));
+            // Broadcast message to real-time subscribers
+            event(new MessageSent($message));
 
             return response()->json([
                 'message' => 'Message sent successfully',

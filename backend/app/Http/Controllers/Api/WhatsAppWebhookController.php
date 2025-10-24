@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Department;
+use App\Events\MessageReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -116,8 +117,8 @@ class WhatsAppWebhookController extends Controller
         // Update conversation timestamp
         $conversation->update(['last_message_at' => now()]);
 
-        // Broadcast via WebSocket (placeholder)
-        // event(new MessageReceived($message));
+        // Broadcast incoming message to real-time subscribers
+        event(new MessageReceived($message));
 
         // Trigger Sofia AI if no agent assigned (placeholder)
         if (!$conversation->assigned_to && config('services.openai.enabled', false)) {
